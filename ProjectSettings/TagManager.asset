@@ -11,11 +11,11 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Ground
+  - Block Player Move
+  - Player Move
+  - Player Body
+  - Bullet
   - 
   - 
   - 
