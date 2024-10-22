@@ -70,7 +70,7 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void JumpInput(bool newJumpState)
     {
-        jump = newJumpState;
+        //jump = newJumpState;
     }
 
     private void SprintInput(bool newSprintState)
