@@ -91,11 +91,21 @@ namespace StarterAssets
         private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
 
-        private PlayerInput _playerInput;
+        private PlayerInput _playerInput;        
 
         private CharacterController _controller;
         public Vector3 Center => _controller.center;
         private PlayerInputHandler _input;
+        public PlayerInputHandler PlayerInputHandler
+        { get 
+            {
+                if(_input == null)
+                {
+                    _input = GetComponent<PlayerInputHandler>();
+                }
+                return _input; 
+            } 
+        }
         private GameObject _mainCamera;
 
         private const float _threshold = 0.01f;
@@ -127,7 +137,6 @@ namespace StarterAssets
             _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
 
             _controller = GetComponent<CharacterController>();
-            _input = GetComponent<PlayerInputHandler>();
             _playerInput = GetComponent<PlayerInput>();
 
             // reset our timeouts on start
@@ -160,13 +169,13 @@ namespace StarterAssets
         private void CameraRotation()
         {
             // if there is an input and camera position is not fixed
-            if (_input.Look.sqrMagnitude >= _threshold && !LockCameraPosition)
+            if (PlayerInputHandler.Look.sqrMagnitude >= _threshold && !LockCameraPosition)
             {
                 //Don't multiply mouse input by Time.deltaTime;
                 float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 
-                _cinemachineTargetYaw += _input.Look.x * deltaTimeMultiplier;
-                _cinemachineTargetPitch += _input.Look.y * deltaTimeMultiplier;
+                _cinemachineTargetYaw += PlayerInputHandler.Look.x * deltaTimeMultiplier;
+                _cinemachineTargetPitch += PlayerInputHandler.Look.y * deltaTimeMultiplier;
             }
 
             // clamp our rotations so our values are limited 360 degrees
@@ -180,15 +189,15 @@ namespace StarterAssets
 
         private void Move()
         {
-            float targetSpeed = _input.Sprint ? SprintSpeed : MoveSpeed;
+            float targetSpeed = PlayerInputHandler.Sprint ? SprintSpeed : MoveSpeed;
 
-            if (_input.Move == Vector2.zero) targetSpeed = 0.0f;
+            if (PlayerInputHandler.Move == Vector2.zero) targetSpeed = 0.0f;
 
             // a reference to the players current horizontal velocity
             float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
 
             float speedOffset = 0.1f;
-            float inputMagnitude = _input.AnalogMovement ? _input.Move.magnitude : 1f;
+            float inputMagnitude = PlayerInputHandler.AnalogMovement ? PlayerInputHandler.Move.magnitude : 1f;
 
             // accelerate or decelerate to target speed
             if (currentHorizontalSpeed < targetSpeed - speedOffset ||
@@ -208,9 +217,9 @@ namespace StarterAssets
             if (_animationBlend < 0.01f) _animationBlend = 0f;
 
             // normalise input direction
-            Vector3 inputDirection = new Vector3(_input.Move.x, 0.0f, _input.Move.y).normalized;
+            Vector3 inputDirection = new Vector3(PlayerInputHandler.Move.x, 0.0f, PlayerInputHandler.Move.y).normalized;
 
-            if (_input.Move != Vector2.zero)
+            if (PlayerInputHandler.Move != Vector2.zero)
             {
                 _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
                                   _mainCamera.transform.eulerAngles.y;
@@ -226,7 +235,7 @@ namespace StarterAssets
                              new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
             // update animator if using character
-            playerAnimator.Move(_input.Move, _animationBlend, inputMagnitude);
+            playerAnimator.Move(PlayerInputHandler.Move, _animationBlend, inputMagnitude);
         }
 
         private void JumpAndGravity()
@@ -245,7 +254,7 @@ namespace StarterAssets
                 }
 
                 // Jump
-                if (_input.Jump && _jumpTimeoutDelta <= 0.0f)
+                if (PlayerInputHandler.Jump && _jumpTimeoutDelta <= 0.0f)
                 {
                     // the square root of H * -2 * G = how much velocity needed to reach desired height
                     _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
@@ -275,7 +284,7 @@ namespace StarterAssets
                 }
 
                 // if we are not grounded, do not jump
-                _input.DoNotJump();
+                PlayerInputHandler.DoNotJump();
             }
 
             // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
