@@ -29,6 +29,8 @@ public class PlayerInputHandler : MonoBehaviour
     public Vector2 Look => look;
     public bool Jump => jump;
     public bool Sprint => sprint;
+
+    public bool IsShoot => isShoot;
     public bool AnalogMovement => analogMovement;
 
     public bool CursorLocked => cursorLocked;

@@ -1,6 +1,5 @@
+using Cinemachine;
 using StarterAssets;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
@@ -10,18 +9,17 @@ public class CameraController : MonoBehaviour
     [SerializeField] private ThirdPersonController localPlayer; // Switch To Local Player later
     [SerializeField] private Transform aimPoint;
     [SerializeField] private LayerMask shootLayer;
+    [SerializeField] private Camera mainCamera;
+    [SerializeField] private CinemachineImpulseSource impulseSource;
+    private Vector3 recoilDirection;
+    private float recoilDelta;
+
+    private Vector3 GetRandomShake => new Vector3(Random.Range(-recoilDirection.x, recoilDirection.x), Random.Range(-recoilDirection.y, recoilDirection.y), Random.Range(-recoilDirection.z, recoilDirection.z));
     public Transform AimPoint => aimPoint;
 
     private PlayerInputHandler playerInputHandler;
-    // Start is called before the first frame update
 
-    private void Start()
-    {
-        switcher.SetupCamera(localPlayer.CinemachineCameraTarget.transform);
-        playerInputHandler = localPlayer.PlayerInputHandler;
-        playerInputHandler.AssignOnAimCallBack(switcher.SwitchToCamera);
-        playerInputHandler.AssignOnShootCallBack(IsShooting);
-    }
+    private RaycastHit hit;
 
     #region Setup Camera
     public void SetupCamera(ThirdPersonController player)
@@ -31,6 +29,8 @@ public class CameraController : MonoBehaviour
         playerInputHandler = localPlayer.PlayerInputHandler;
         playerInputHandler.AssignOnAimCallBack(switcher.SwitchToCamera);
         playerInputHandler.AssignOnShootCallBack(IsShooting);
+        recoilDirection = player.CurrentWeapon.RecoilDirection;
+        recoilDelta = player.CurrentWeapon.RecoilDelta;
     }
 
     #endregion
@@ -38,19 +38,50 @@ public class CameraController : MonoBehaviour
     #region Interactive Camera
     private void IsShooting(bool isShoot)
     {
-        if (isShoot) 
+        if (isShoot)
         {
-            InvokeRepeating(nameof(Shoot),0f,1f);
+            StartShoot();
+            return;
         }
-        else
+        CancelInvoke(nameof(Shoot));
+    }
+
+    public void StartShoot()
+    {
+        if( playerInputHandler.IsShoot && localPlayer.CurrentWeapon.CurrentAmmo > 0)
         {
-            CancelInvoke(nameof(Shoot));
+            InvokeRepeating(nameof(Shoot), 0f, .1f);
+            return;
         }
+        CancelInvoke(nameof(Shoot));
     }
 
     private void Shoot()
     {
-        Debug.Log("Shoot");
+        if (localPlayer.CurrentWeapon.CurrentAmmo <= 0)
+        {
+            CancelInvoke(nameof(Shoot));
+            return;
+        }
+
+        TriggerShake();
+        localPlayer.CurrentWeapon.OnShoot();
+        if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out hit, aimPoint.localPosition.z, shootLayer, QueryTriggerInteraction.Ignore))
+        {
+            switch (hit.collider.gameObject.layer)
+            {
+                case 9: // Hit Human
+                    break;
+                case 6: // Hit Ground
+                    break;
+            }
+        }
+    }
+
+    private void TriggerShake()
+    {
+        impulseSource.m_DefaultVelocity = GetRandomShake;
+        impulseSource.GenerateImpulseWithForce(recoilDelta);
     }
     #endregion
 

@@ -73,6 +73,13 @@ namespace StarterAssets
         public bool LockCameraPosition = false;
 
         public PlayerAnimationController playerAnimator;
+        public Transform handlePoint;
+
+        [SerializeField] private WeaponInGame demoWeapon;
+        public CameraController cameraController;
+
+        private WeaponInGame currentWeapon;
+        public WeaponInGame CurrentWeapon => currentWeapon;
 
         // cinemachine
         private float _cinemachineTargetYaw;
@@ -91,20 +98,21 @@ namespace StarterAssets
         private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
 
-        private PlayerInput _playerInput;        
+        private PlayerInput _playerInput;
 
         private CharacterController _controller;
         public Vector3 Center => _controller.center;
         private PlayerInputHandler _input;
         public PlayerInputHandler PlayerInputHandler
-        { get 
+        {
+            get
             {
-                if(_input == null)
+                if (_input == null)
                 {
                     _input = GetComponent<PlayerInputHandler>();
                 }
-                return _input; 
-            } 
+                return _input;
+            }
         }
         private GameObject _mainCamera;
 
@@ -142,6 +150,14 @@ namespace StarterAssets
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+
+            if (demoWeapon != null)
+            {
+                currentWeapon = Instantiate(demoWeapon);
+                currentWeapon.Equip(this, handlePoint, cameraController.StartShoot);
+            }
+
+            cameraController.SetupCamera(this);
         }
 
         private void Update()
@@ -158,7 +174,6 @@ namespace StarterAssets
 
         private void GroundedCheck()
         {
-            // set sphere position, with offset
             Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset,
                 transform.position.z);
             Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
@@ -168,21 +183,17 @@ namespace StarterAssets
 
         private void CameraRotation()
         {
-            // if there is an input and camera position is not fixed
             if (PlayerInputHandler.Look.sqrMagnitude >= _threshold && !LockCameraPosition)
             {
-                //Don't multiply mouse input by Time.deltaTime;
                 float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 
                 _cinemachineTargetYaw += PlayerInputHandler.Look.x * deltaTimeMultiplier;
                 _cinemachineTargetPitch += PlayerInputHandler.Look.y * deltaTimeMultiplier;
             }
 
-            // clamp our rotations so our values are limited 360 degrees
             _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
             _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
-            // Cinemachine will follow this target
             CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride,
                 _cinemachineTargetYaw, 0.0f);
         }
@@ -193,13 +204,11 @@ namespace StarterAssets
 
             if (PlayerInputHandler.Move == Vector2.zero) targetSpeed = 0.0f;
 
-            // a reference to the players current horizontal velocity
             float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
 
             float speedOffset = 0.1f;
             float inputMagnitude = PlayerInputHandler.AnalogMovement ? PlayerInputHandler.Move.magnitude : 1f;
 
-            // accelerate or decelerate to target speed
             if (currentHorizontalSpeed < targetSpeed - speedOffset ||
                 currentHorizontalSpeed > targetSpeed + speedOffset)
             {
@@ -216,7 +225,6 @@ namespace StarterAssets
             _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
             if (_animationBlend < 0.01f) _animationBlend = 0f;
 
-            // normalise input direction
             Vector3 inputDirection = new Vector3(PlayerInputHandler.Move.x, 0.0f, PlayerInputHandler.Move.y).normalized;
 
             if (PlayerInputHandler.Move != Vector2.zero)
@@ -230,11 +238,9 @@ namespace StarterAssets
 
             Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-            // move the player
             _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
                              new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
-            // update animator if using character
             playerAnimator.Move(PlayerInputHandler.Move, _animationBlend, inputMagnitude);
         }
 
@@ -242,27 +248,22 @@ namespace StarterAssets
         {
             if (Grounded)
             {
-                // reset the fall timeout timer
                 _fallTimeoutDelta = FallTimeout;
 
                 playerAnimator.Jump();
 
-                // stop our velocity dropping infinitely when grounded
                 if (_verticalVelocity < 0.0f)
                 {
                     _verticalVelocity = -2f;
                 }
 
-                // Jump
                 if (PlayerInputHandler.Jump && _jumpTimeoutDelta <= 0.0f)
                 {
-                    // the square root of H * -2 * G = how much velocity needed to reach desired height
                     _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
 
                     playerAnimator.Jump(isJump: true);
                 }
 
-                // jump timeout
                 if (_jumpTimeoutDelta >= 0.0f)
                 {
                     _jumpTimeoutDelta -= Time.deltaTime;
@@ -270,10 +271,8 @@ namespace StarterAssets
             }
             else
             {
-                // reset the jump timeout timer
                 _jumpTimeoutDelta = JumpTimeout;
 
-                // fall timeout
                 if (_fallTimeoutDelta >= 0.0f)
                 {
                     _fallTimeoutDelta -= Time.deltaTime;
@@ -283,11 +282,9 @@ namespace StarterAssets
                     playerAnimator.Jump(isFreefall: true);
                 }
 
-                // if we are not grounded, do not jump
                 PlayerInputHandler.DoNotJump();
             }
 
-            // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
             if (_verticalVelocity < _terminalVelocity)
             {
                 _verticalVelocity += Gravity * Time.deltaTime;
