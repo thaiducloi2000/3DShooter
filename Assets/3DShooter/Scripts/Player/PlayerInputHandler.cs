@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(PlayerInput))]
@@ -10,12 +11,19 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private bool jump;
     [SerializeField] private bool sprint;
 
+    [Header("Camera Input Values")]
+    [SerializeField] private bool isAim;
+    [SerializeField] private bool isShoot;
+
     [Header("Movement Settings")]
     [SerializeField] private bool analogMovement;
 
     [Header("Mouse Cursor Settings")]
     [SerializeField] private bool cursorLocked = true;
     [SerializeField] private bool cursorInputForLook = true;
+
+    private UnityAction<bool> isAimCallBack;
+    private UnityAction<bool> isShootCallBack;
 
     public Vector2 Move => move;
     public Vector2 Look => look;
@@ -26,10 +34,41 @@ public class PlayerInputHandler : MonoBehaviour
     public bool CursorLocked => cursorLocked;
     public bool CursorInputForLook => cursorInputForLook;
 
+    private void OnDisable()
+    {
+        ClearAllCallBack();
+    }
+
     #region Public Set Method With Condition
     public void DoNotJump()
     {
         jump = false;
+    }
+
+    public void AssignOnAimCallBack(UnityAction<bool> callback)
+    {
+        isAimCallBack += callback;
+    }
+
+    public void AssignOnShootCallBack(UnityAction<bool> callback)
+    {
+        isShootCallBack += callback;
+    }
+
+    public void RemoveAimCallBack(UnityAction<bool> callback)
+    {
+        isAimCallBack -= callback;
+    }
+
+    public void RemoveShootallBack(UnityAction<bool> callback)
+    {
+        isShootCallBack -= callback;
+    }
+
+    private void ClearAllCallBack()
+    {
+        isAimCallBack = null;
+        isShootCallBack = null;
     }
     #endregion
     #region Public Set Method Call Back From New Input System
@@ -55,9 +94,19 @@ public class PlayerInputHandler : MonoBehaviour
     {
         SprintInput(value.isPressed);
     }
+
+    public void OnAim(InputValue value)
+    {
+        AimInput(value.isPressed);
+    }
+
+    public void OnShoot(InputValue value)
+    {
+        ShootInput(value.isPressed);
+    }
     #endregion
 
-    #region Private Set Method
+    #region Private Set Method Player Input
     private void MoveInput(Vector2 newMoveDirection)
     {
         move = newMoveDirection;
@@ -87,5 +136,21 @@ public class PlayerInputHandler : MonoBehaviour
     {
         Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
     }
+    #endregion
+
+    #region Private Set Camera Invoke
+    private void AimInput(bool newStateAim)
+    {
+        if (isAim == newStateAim) return;
+        isAim = newStateAim;
+        isAimCallBack?.Invoke(isAim);
+        //jump = newJumpState;
+    }
+    private void ShootInput(bool newShootState)
+    {
+        isShoot = newShootState;
+        isShootCallBack?.Invoke(isShoot);
+    }
+
     #endregion
 }
