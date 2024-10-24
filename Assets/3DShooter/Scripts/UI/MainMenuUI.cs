@@ -1,4 +1,4 @@
-
+using System.Collections;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
@@ -12,6 +12,22 @@ public class MainMenuUI : GamePopup
     public void OnClickPlayGame()
     {
         // Load the game scene
-        SceneManager.LoadScene("Gameplay_Scene");
+         StartCoroutine(LoadGameplayScene("Gameplay_Scene"));
+    }
+
+    public void OnClickLobby()
+    {
+          UiManager.Instance.ShowGamePopup<LobbyUI>(isShowSuperImage : false);
+    }
+
+    private IEnumerator LoadGameplayScene(string sceneName)
+    {
+        var asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+        // Wait until the asynchronous scene fully loads
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+        Destroy(gameObject);
     }
 }
