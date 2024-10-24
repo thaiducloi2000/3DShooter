@@ -2,6 +2,7 @@ using StarterAssets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem.XR;
 
 public class PlayerAnimationController : MonoBehaviour
@@ -33,6 +34,7 @@ public class PlayerAnimationController : MonoBehaviour
     #region private variable
     private ThirdPersonController playerController;
     private bool hasAnimator;
+    private UnityAction OnReloadDoneCallBack;
     #endregion
 
     private void Start()
@@ -57,15 +59,32 @@ public class PlayerAnimationController : MonoBehaviour
         animatorController.SetBool(_animIDFreeFall, isFreefall);
     }
 
+    public void DoReload(UnityAction callback = null)
+    {
+        OnReloadDoneCallBack = callback;
+        animatorController.SetBool(_animIDMotionReload, true);
+    }
+
     public void Grounded(bool isGrounded = false)
     {
         if (!hasAnimator) return;
 
         animatorController.SetBool(_animIDGrounded, isGrounded);
     }
+    #region Animation Call Back
+    private void OnReloadCallBack(AnimationEvent animationEvent)
+    {
+        Debug.Log("reload");
+        if (animationEvent.animatorClipInfo.weight > 0.5f)
+        {
+            animatorController.SetBool(_animIDMotionReload, false);
+            OnReloadDoneCallBack?.Invoke();
+        }
+    }
 
 
-    private void OnFootstep(AnimationEvent animationEvent)
+
+        private void OnFootstep(AnimationEvent animationEvent)
     {
         if (animationEvent.animatorClipInfo.weight > 0.5f)
         {
@@ -90,5 +109,5 @@ public class PlayerAnimationController : MonoBehaviour
             }
         }
     }
-
+    #endregion
 }

@@ -51,6 +51,8 @@ MonoBehaviour:
   recoilDelta: 0.2
   maxAmmoPerAmplifier: 30
   reloadSpeed: 2
+  bullet: {fileID: 2947726136172458507, guid: e2ba727a17e461d44b33e480e2f56d18, type: 3}
+  hitVfx: {fileID: 1591689192499646, guid: 9ce3933b9e1bd504db5ef084c5beef96, type: 3}
 --- !u!1 &2573045504538625634
 GameObject:
   m_ObjectHideFlags: 0
@@ -330,6 +332,10 @@ PrefabInstance:
     - target: {fileID: 1336949550903370, guid: 4543ab5e3d405ec40a8d4e9aa5165030, type: 3}
       propertyPath: m_Name
       value: VFX_M4 Muzzle Flash
+      objectReference: {fileID: 0}
+    - target: {fileID: 1336949550903370, guid: 4543ab5e3d405ec40a8d4e9aa5165030, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4639870034382688, guid: 4543ab5e3d405ec40a8d4e9aa5165030, type: 3}
       propertyPath: m_LocalPosition.x

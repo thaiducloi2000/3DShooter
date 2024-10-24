@@ -1,4 +1,5 @@
 using Cinemachine;
+using Sirenix.OdinInspector;
 using StarterAssets;
 using UnityEngine;
 
@@ -18,8 +19,6 @@ public class CameraController : MonoBehaviour
     public Transform AimPoint => aimPoint;
 
     private PlayerInputHandler playerInputHandler;
-
-    private RaycastHit hit;
 
     #region Setup Camera
     public void SetupCamera(ThirdPersonController player)
@@ -56,6 +55,7 @@ public class CameraController : MonoBehaviour
         CancelInvoke(nameof(Shoot));
     }
 
+    [Button("Shoot")]
     private void Shoot()
     {
         if (localPlayer.CurrentWeapon.CurrentAmmo <= 0)
@@ -66,7 +66,9 @@ public class CameraController : MonoBehaviour
 
         TriggerShake();
         localPlayer.CurrentWeapon.OnShoot();
-        if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out hit, aimPoint.localPosition.z, shootLayer, QueryTriggerInteraction.Ignore))
+
+        // if target is in range shoot, deal damage else spawn bullet
+        if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, aimPoint.localPosition.z, shootLayer, QueryTriggerInteraction.Ignore))
         {
             switch (hit.collider.gameObject.layer)
             {
@@ -75,6 +77,11 @@ public class CameraController : MonoBehaviour
                 case 6: // Hit Ground
                     break;
             }
+            localPlayer.CurrentWeapon.SpawnHitVfx(hit.point,hit.normal);
+        }
+        else
+        {
+            localPlayer.CurrentWeapon.SpawnBullet();
         }
     }
 

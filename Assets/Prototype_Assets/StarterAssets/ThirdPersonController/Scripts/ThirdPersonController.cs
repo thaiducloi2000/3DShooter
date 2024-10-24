@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+﻿using AimIK = RootMotion.FinalIK.AimIK;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
@@ -81,6 +81,8 @@ namespace StarterAssets
         private WeaponInGame currentWeapon;
         public WeaponInGame CurrentWeapon => currentWeapon;
 
+        [SerializeField] private AimIK ik;
+
         // cinemachine
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
@@ -130,7 +132,6 @@ namespace StarterAssets
             }
         }
 
-
         private void Awake()
         {
             // get a reference to our main camera
@@ -154,10 +155,16 @@ namespace StarterAssets
             if (demoWeapon != null)
             {
                 currentWeapon = Instantiate(demoWeapon);
-                currentWeapon.Equip(this, handlePoint, cameraController.StartShoot);
+                currentWeapon.Equip(this, handlePoint, () =>
+                {
+                    cameraController.StartShoot();
+                });
             }
 
             cameraController.SetupCamera(this);
+            ik.solver.target = cameraController.AimPoint;
+            ik.solver.poleTarget = cameraController.AimPoint;
+            ik.solver.transform = currentWeapon.MuzzleFlash;
         }
 
         private void Update()
@@ -289,6 +296,16 @@ namespace StarterAssets
             {
                 _verticalVelocity += Gravity * Time.deltaTime;
             }
+        }
+
+        public void Reload()
+        {
+            ik.solver.SetIKPositionWeight(0);
+            playerAnimator.DoReload(()=> 
+            {
+                CurrentWeapon.Reload();
+                ik.solver.SetIKPositionWeight(1);
+            });
         }
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
