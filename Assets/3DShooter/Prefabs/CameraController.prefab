@@ -265,7 +265,7 @@ MonoBehaviour:
     m_DissipationMode: 2
     m_DissipationDistance: 100
     m_PropagationSpeed: 343
-  m_DefaultVelocity: {x: 0, y: 1, z: 0}
+  m_DefaultVelocity: {x: -0.02818264, y: -0.01000994, z: 0.007579818}
 --- !u!1 &4844776804066945614
 GameObject:
   m_ObjectHideFlags: 0
@@ -353,6 +353,7 @@ MonoBehaviour:
     m_Bits: 576
   mainCamera: {fileID: 6185897384253288753}
   impulseSource: {fileID: 5457418530954951303}
+  shootRare: 0.3
 --- !u!1001 &563698505752332635
 PrefabInstance:
   m_ObjectHideFlags: 0

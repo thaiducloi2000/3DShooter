@@ -9,7 +9,6 @@ public class Bullet : MonoBehaviour
     private WeaponInGame weaponUse;
     private float currentFlySpeed = 0f;
     public IObjectPool<Bullet> pool;
-    private Vector3 directionFly;
     bool isRelease = false;
     // Start is called before the first frame update
 
@@ -19,20 +18,18 @@ public class Bullet : MonoBehaviour
         Invoke(nameof(AutoRelease), 5f);
     }
 
-    public void Setup(Vector3 direction, WeaponInGame weapon)
+    public void Setup(WeaponInGame weapon)
     {
         weaponUse = weapon;
-        transform.forward = direction.normalized;
-        directionFly = direction.normalized;
         currentFlySpeed = flySpeed;
         isRelease = false;
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         if (currentFlySpeed <= 0f) return;
-        transform.position += directionFly * (currentFlySpeed * Time.deltaTime);
+        transform.position += transform.forward * currentFlySpeed * Time.deltaTime;
         CheckHit();
     }
 

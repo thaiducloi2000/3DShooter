@@ -7,7 +7,8 @@ using UnityEngine.Pool;
 public class WeaponInGame : MonoBehaviour, IWeaponInGame
 {
     [SerializeField] private GameObject muzzleFlashVFX;
-    public Transform MuzzleFlash => muzzleFlashVFX.transform;
+    [SerializeField] private Transform targetPoint;
+    public Transform TargetPoint => targetPoint;
 
     [Header("Weapon Setting")]
     [SerializeField] private Vector3 recoilDirection;
@@ -96,8 +97,9 @@ public class WeaponInGame : MonoBehaviour, IWeaponInGame
     public void SpawnBullet()
     {
         Bullet obj = BulletPool.Get();
-        obj.transform.position =  muzzleFlashVFX.transform.position;
-        obj.Setup(transform.forward, this);
+        obj.transform.position = TargetPoint.position;
+        obj.transform.forward = TargetPoint.forward.normalized;
+        obj.Setup(this);
     }
     // ----- End Of Bullet
     // ----- private State

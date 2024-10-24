@@ -164,7 +164,7 @@ namespace StarterAssets
             cameraController.SetupCamera(this);
             ik.solver.target = cameraController.AimPoint;
             ik.solver.poleTarget = cameraController.AimPoint;
-            ik.solver.transform = currentWeapon.MuzzleFlash;
+            ik.solver.transform = currentWeapon.TargetPoint;
         }
 
         private void Update()

@@ -12,6 +12,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private LayerMask shootLayer;
     [SerializeField] private Camera mainCamera;
     [SerializeField] private CinemachineImpulseSource impulseSource;
+    [SerializeField] private float shootRare;
     private Vector3 recoilDirection;
     private float recoilDelta;
 
@@ -40,16 +41,18 @@ public class CameraController : MonoBehaviour
         if (isShoot)
         {
             StartShoot();
-            return;
         }
-        CancelInvoke(nameof(Shoot));
+        else
+        {
+            CancelInvoke(nameof(Shoot));
+        }
     }
 
     public void StartShoot()
     {
         if( playerInputHandler.IsShoot && localPlayer.CurrentWeapon.CurrentAmmo > 0)
         {
-            InvokeRepeating(nameof(Shoot), 0f, .1f);
+            InvokeRepeating(nameof(Shoot), 0f, shootRare);
             return;
         }
         CancelInvoke(nameof(Shoot));
