@@ -24,6 +24,7 @@ public class PlayerInputHandler : MonoBehaviour
 
     private UnityAction<bool> isAimCallBack;
     private UnityAction<bool> isShootCallBack;
+    public UnityAction OnReloadClick;
 
     public Vector2 Move => move;
     public Vector2 Look => look;
@@ -90,6 +91,11 @@ public class PlayerInputHandler : MonoBehaviour
     public void OnJump(InputValue value)
     {
         JumpInput(value.isPressed);
+    }
+
+    public void OnReload(InputValue value)
+    {
+        OnReloadClick?.Invoke();
     }
 
     public void OnSprint(InputValue value)

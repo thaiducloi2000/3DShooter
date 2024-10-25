@@ -112,6 +112,7 @@ namespace StarterAssets
                 if (_input == null)
                 {
                     _input = GetComponent<PlayerInputHandler>();
+                    _input.OnReloadClick += Reload;
                 }
                 return _input;
             }
