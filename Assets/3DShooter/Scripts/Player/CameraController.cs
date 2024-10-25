@@ -1,6 +1,7 @@
 using Cinemachine;
 using Sirenix.OdinInspector;
 using StarterAssets;
+using TMPro;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
@@ -13,6 +14,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private Camera mainCamera;
     [SerializeField] private CinemachineImpulseSource impulseSource;
     [SerializeField] private float shootRare;
+    [SerializeField] private TextMeshProUGUI ammoCount;
     private Vector3 recoilDirection;
     private float recoilDelta;
 
@@ -31,6 +33,8 @@ public class CameraController : MonoBehaviour
         playerInputHandler.AssignOnShootCallBack(IsShooting);
         recoilDirection = player.CurrentWeapon.RecoilDirection;
         recoilDelta = player.CurrentWeapon.RecoilDelta;
+        player.CurrentWeapon.AddAmmoChangeListener(ammo => ammoCount.text = ammo.ToString());
+        ammoCount.text = player.CurrentWeapon.CurrentAmmo.ToString();
     }
 
     #endregion

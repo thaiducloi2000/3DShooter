@@ -25,10 +25,20 @@ public class WeaponInGame : MonoBehaviour, IWeaponInGame
     private IObjectPool<PoolElement> hitPool;
 
     private int currentAmmo;
-    public int CurrentAmmo => currentAmmo;
+    public int CurrentAmmo
+    {
+        get => currentAmmo;
+        private set
+        {
+            currentAmmo = value;
+            OnAmmoChangeCallBack?.Invoke(currentAmmo);
+        }
+    }
 
     private ThirdPersonController playerUse;
     private UnityAction outOfAmmoCallBack;
+    private UnityAction<int> OnAmmoChangeCallBack;
+
 
     public void Equip(ThirdPersonController player, Transform handlePoint, UnityAction OnOutOfAmmoCallBack = null)
     {
@@ -41,12 +51,17 @@ public class WeaponInGame : MonoBehaviour, IWeaponInGame
         outOfAmmoCallBack = OnOutOfAmmoCallBack;
     }
 
+    public void AddAmmoChangeListener(UnityAction<int> listener)
+    {
+        OnAmmoChangeCallBack += listener;
+    }
+
     public void OnShoot()
     {
         if (currentAmmo <= 0) return;
         muzzleFlashVFX.gameObject.SetActive(false);
         muzzleFlashVFX.gameObject.SetActive(true);
-        currentAmmo--;
+        CurrentAmmo--;
         if (currentAmmo <= 0)
         {
             outOfAmmoCallBack?.Invoke();
@@ -56,7 +71,7 @@ public class WeaponInGame : MonoBehaviour, IWeaponInGame
 
     public void Reload()
     {
-        currentAmmo = maxAmmoPerAmplifier;
+        CurrentAmmo = maxAmmoPerAmplifier;
         muzzleFlashVFX.gameObject.SetActive(false);
         outOfAmmoCallBack?.Invoke();
     }
@@ -89,7 +104,7 @@ public class WeaponInGame : MonoBehaviour, IWeaponInGame
         {
             if (bulletPool == null)
             {
-                bulletPool = new ObjectPool<Bullet>(CreatePooledItemBullet, OnTakeFromPool<Bullet>, OnReturnedToPool<Bullet>, OnDestroyPoolObject<Bullet>,maxSize: 100);
+                bulletPool = new ObjectPool<Bullet>(CreatePooledItemBullet, OnTakeFromPool<Bullet>, OnReturnedToPool<Bullet>, OnDestroyPoolObject<Bullet>, maxSize: 100);
             }
             return bulletPool;
         }
